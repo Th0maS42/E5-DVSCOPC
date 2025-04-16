@@ -254,17 +254,18 @@ ingress:
 1 - Déploiement du secret avant le déploiement d’infisical
 k create -f simple-values-example.yaml
 
-# Déploiement d’infisical
+Déploiement d’infisical
 helm upgrade --install infisical infisical-helm-charts/infisical-standalone --values values.yaml
 
-# La webinterface d’infisical est généralement accessible via le port 80. Pour s’en assurer, afficher l’@ip et le port
+La webinterface d’infisical est généralement accessible via le port 80. Pour s’en assurer, afficher l’@ip et le port
 k get service infisical-ingress-nginx-controller
 
-# Prendre le node port et faire un port forwarding
+Prendre le node port et faire un port forwarding
 
-# Pour ensuite y accéder, réaliser un port forwarding via vscodeium ou un k
-# OU on peut aussi y accéder directement via l’@ip de la vm, faire un `kubectl port-foward` et choisir le service de
-# l’app en question et bien mettre les ports de l’app des deux côtés
+Pour ensuite y accéder, réaliser un port forwarding via vscodeium ou un k
+OU on peut aussi y accéder directement via l’@ip de la vm, faire un `kubectl port-foward` et choisir le service de
+l’app en question et bien mettre les ports de l’app des deux côtés
+
 kubectl port-forward --address 0.0.0.0 services/infisical-ingress-nginx-controller port:port
 
 2 - Installation de l'opérateur infisical dans k8s
