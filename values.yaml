@@ -1,0 +1,8 @@
+infisical:
+  image:
+    repository: infisical/infisical
+    tag: "v0.97.0-postgres" 
+    pullPolicy: IfNotPresent
+ingress:
+  nginx:
+    enabled: true

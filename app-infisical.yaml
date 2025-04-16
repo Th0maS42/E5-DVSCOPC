@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rocket-configmap
+data:
+  DEMO_MODE: "True"
+  DEBUG: "True"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rocket-deployment
+  labels:
+    app: django
+    env: preprod
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django
+  template:
+    metadata:
+      labels:
+        app: django
+        env: preprod
+        tier: frontend
+      annotations:
+        infisical.com/enable: "true"
+        infisical.com/projectId: "bc385a41-05ac-42f0-b9a9-de4c79332314"
+        infisical.com/environment: "dev"
+        infisical.com/secretType: "shared"
+        infisical.com/token: "st.9d35c803-f1e1-434c-9526-b14c8051cd10.8fd438a6afed2d9d4a12d9c11979d96c.51a839af8e29a2e0c692ff340d3e6108"
+    spec:
+      containers:
+      - name: rocket-random
+        image: toniocs/rocket-app:prod
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 5005
+        envFrom:
+        - configMapRef:
+            name: rocket-configmap
+        env:
+          - name: STRIPE_PUBLISHABLE_KEY
+            value: ""  # Infisical injectera cette valeur
+          - name: STRIPE_SECRET_KEY
+            value: ""  # Infisical injectera cette valeur
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "120Mi"
+            cpu: "300m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rocket-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: django
+  ports:
+  - port: 5005
+    targetPort: 5005
+    name: django-np
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-rocketapp
+spec:
+  defaultBackend:
+    service:
+      name: rocket-service
+      port:
+        number: 7777
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: rocket-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: rocket-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
